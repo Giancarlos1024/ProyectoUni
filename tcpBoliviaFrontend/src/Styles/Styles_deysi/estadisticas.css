@@ -1,0 +1,49 @@
+.estadisticas-container {
+  display: flex;
+  flex-direction: column; /* Alinea las tarjetas en una columna */
+  gap: 20px; /* Espaciado entre tarjetas */
+  justify-content: center;
+  align-items: center;
+  
+ 
+}
+
+.estadistica-card {
+  min-width: 250px; /* Tamaño mínimo de las tarjetas */
+  background-color: #ffffff; /* Color de fondo blanco para las tarjetas */
+  border-radius: 12px; /* Bordes más redondeados */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra más profunda */
+  overflow: hidden;
+  border: 1px solid #e0e0e0; /* Borde gris más claro */
+  transition: box-shadow 0.3s ease-in-out; /* Efecto de transición en el hover */
+}
+
+.estadistica-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más profunda al pasar el ratón */
+}
+
+.card-title {
+  color: #555; /* Color del título, gris oscuro */
+  font-weight: 600; /* Fuente más audaz */
+  font-size: 1rem; /* Tamaño de fuente consistente */
+  margin-bottom: 8px; /* Espacio debajo del título */
+}
+
+.data-percentage {
+  font-weight: 700; /* Fuente más audaz para el porcentaje */
+  color: #333; /* Color del porcentaje, gris oscuro */
+  font-size: 1.5rem; /* Tamaño de fuente más grande */
+}
+
+.MuiTypography-h4 {
+  color: #e74c3c; /* Color del porcentaje en h4 */
+  font-weight: bold;
+  margin: 0;
+}
+
+.MuiTypography-h6 {
+  color: #ffffff; /* Color del texto en el título */
+  background-color: #666; /* Fondo oscuro para el título */
+  padding: 8px 12px; /* Espaciado alrededor del texto */
+  border-radius: 4px; /* Bordes redondeados para el fondo */
+}
