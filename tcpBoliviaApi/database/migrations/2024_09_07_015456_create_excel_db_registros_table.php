@@ -27,8 +27,8 @@ class CreateExcelDbRegistrosTable extends Migration
             $table->decimal('restiempo', 5, 2); // DECIMAL(5,2)
             $table->string('caso_id', 100);
             $table->string('sala', 100);
-            $table->string('acción_const', 100);
-            $table->string('acción_const2', 100);
+            $table->string('accion_const', 100);
+            $table->string('accion_const2', 100);
             $table->string('res_emisor', 100);
             $table->string('departamento_id', 100);
             $table->string('municipio_id', 100);
