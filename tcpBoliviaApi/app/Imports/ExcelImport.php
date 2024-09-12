@@ -15,16 +15,16 @@ class ExcelImport implements ToCollection
 
     public function collection(Collection $collection)
     {
-        // Ignorar la primera fila que contiene los encabezados
+        Log::info('Contenido del archivo importado: ' . json_encode($collection->toArray()));
+
         $rows = $collection->skip(1);
 
         foreach ($rows as $row) {
             Log::info('Fila importada: ' . json_encode($row));
 
-            // Verificar que la fila tenga exactamente 18 columnas
             if (count($row) != 18) {
                 Log::error('Número incorrecto de columnas en la fila: ' . json_encode($row));
-                continue; // Saltar esta fila si no tiene el número correcto de columnas
+                continue;
             }
 
             try {
@@ -53,6 +53,4 @@ class ExcelImport implements ToCollection
             }
         }
     }
-
-
 }

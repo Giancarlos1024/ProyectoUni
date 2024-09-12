@@ -1,79 +1,84 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ExcelImport;
-
+use Exception;
 
 class ExcelController extends Controller
 {
     public function upload(Request $request)
     {
-        // Validar el archivo recibido
-        $request->validate([
-            'file' => 'required|file|max:20480', // Permite cualquier tipo de archivo hasta 20MB
-        ]);
+        Log::info('Solicitud recibida: ' . json_encode($request->all()));
 
-        $file = $request->file('file');
-
-        if (!$file) {
+        // Verifica si el archivo está en la solicitud
+        if (!$request->hasFile('file')) {
+            Log::error('No se ha recibido ningún archivo.');
             return response()->json(['error' => 'No se ha recibido ningún archivo.'], 422);
         }
 
-        if (!$file->isValid()) {
-            return response()->json(['error' => 'El archivo subido no es válido.'], 422);
+        // Valida que se haya enviado un archivo
+        try {
+            $request->validate([
+                'file' => 'required|file|max:20480',
+            ]);
+            Log::info('Validación del archivo pasada.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación: ' . $e->getMessage());
+            return response()->json(['error' => 'Error de validación: ' . $e->getMessage()], 422);
         }
 
-        // Guardar el archivo en el almacenamiento público en la carpeta "uploads"
-        $path = $file->store('uploads', 'public');
+        $file = $request->file('file');
+        Log::info('Archivo recibido: ' . $file->getClientOriginalName());
 
-        // Obtener la URL del archivo almacenado
-        $url = Storage::url($path);
+        if ($file) {
+            // Almacena el archivo
+            $path = $file->store('uploads', 'public');
+            $fullPath = storage_path('app/public/' . $path);
+            $url = Storage::url($path);
 
-        return response()->json([
-            'message' => 'Archivo cargado exitosamente.',
-            'file_url' => $url
-        ]);
+            Log::info('Archivo guardado en: ' . $fullPath);
+            Log::info('URL del archivo: ' . $url);
+
+            try {
+                // Lee el contenido del archivo para verificar que tiene datos
+                $content = file_get_contents($fullPath);
+                Log::info('Contenido del archivo: ' . substr($content, 0, 500)); // Muestra solo los primeros 500 caracteres para evitar demasiada información
+
+                // Verifica la extensión del archivo
+                $fileExtension = $file->getClientOriginalExtension();
+                Log::info('Extensión del archivo: ' . $fileExtension);
+
+                if (in_array($fileExtension, ['csv', 'xlsx', 'xls'])) {
+                    // Importa el archivo
+                    Excel::import(new ExcelImport, $fullPath);
+                    Log::info('Importación del archivo iniciada.');
+                } else {
+                    Log::warning('Archivo no es de tipo Excel: ' . $fileExtension);
+                    return response()->json([
+                        'message' => 'Archivo cargado pero no es de tipo Excel.',
+                        'url' => $url
+                    ], 422);
+                }
+
+                return response()->json([
+                    'message' => 'Archivo cargado y datos importados con éxito.',
+                    'url' => $url
+                ]);
+            } catch (Exception $e) {
+                Log::error('Error al procesar el archivo: ' . $e->getMessage());
+                return response()->json([
+                    'error' => 'Error al procesar el archivo: ' . $e->getMessage(),
+                    'url' => $url
+                ], 422);
+            }
+        }
+
+        Log::error('No se ha recibido ningún archivo.');
+        return response()->json(['error' => 'No se ha recibido ningún archivo.'], 422);
     }
-    
-    // public function upload(Request $request)
-    // {
-
-    //     dd($request->all());
-    //     // Validar el archivo recibido, permitiendo CSV y Excel
-    //     $request->validate([
-    //         'file' => 'required|file|mimes:csv,xlsx,xls|max:20480', // Permite CSV y Excel
-    //     ]);
-    
-    //     $file = $request->file('file');
-    
-    //     // Depuración del tipo MIME
-    //     dd($file->getMimeType());
-    
-    //     if (!$file) {
-    //         return response()->json(['error' => 'No se ha recibido ningún archivo.'], 422);
-    //     }
-    
-    //     if (!$file->isValid()) {
-    //         return response()->json(['error' => 'El archivo subido no es válido.'], 422);
-    //     }
-    
-    //     try {
-    //         // Procesar el archivo según tu lógica
-    //         // Aceptar tanto archivos CSV como Excel
-    //         if ($file->getClientOriginalExtension() == 'csv') {
-    //             Excel::import(new ExcelImport, $file);
-    //         } elseif (in_array($file->getClientOriginalExtension(), ['xlsx', 'xls'])) {
-    //             Excel::import(new ExcelImport, $file);
-    //         } else {
-    //             return response()->json(['error' => 'Tipo de archivo no permitido.'], 422);
-    //         }
-    
-    //         return response()->json(['message' => 'Archivo cargado y datos insertados exitosamente.']);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['error' => 'Error al procesar el archivo: ' . $e->getMessage()], 422);
-    //     }
-    // }
 }
